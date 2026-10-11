@@ -1,0 +1,52 @@
+{%- comment -%} sections/home-collection-tiles.liquid — category tiles from a collection list. {%- endcomment -%}
+
+<section class="section section--soft">
+  <div class="container">
+    <div class="section__head">
+      <h2 class="section__title">{{ section.settings.title | default: 'Shop by category' }}</h2>
+      {% if section.settings.view_all_url != blank %}
+        <a class="section__link" href="{{ section.settings.view_all_url }}">{{ section.settings.view_all_label | default: 'View all' }}</a>
+      {% endif %}
+    </div>
+
+    <div class="tiles">
+      {%- for collection in section.settings.collections -%}
+        <a class="tile" href="{{ collection.url }}">
+          <div class="tile__media">
+            {% if collection.featured_image %}
+              {{ collection.featured_image | image_url: width: 900 | image_tag:
+                  loading: 'lazy',
+                  widths: '320, 600, 900',
+                  sizes: '(min-width: 861px) 32vw, (min-width: 561px) 50vw, 92vw',
+                  alt: collection.title | escape }}
+            {% endif %}
+          </div>
+          <div class="tile__label">
+            <span class="tile__name">{{ collection.title | escape }}</span>
+            <span class="tile__count">{{ collection.products_count }} pieces</span>
+            <svg class="tile__arrow" width="18" height="12" viewBox="0 0 18 12" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M1 6h15M11 1l5 5-5 5"/></svg>
+          </div>
+        </a>
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Collection tiles",
+  "class": "home-collection-tiles",
+  "settings": [
+    { "type": "text", "id": "title", "label": "Heading", "default": "Shop by category" },
+    { "type": "url", "id": "view_all_url", "label": "View all URL" },
+    { "type": "text", "id": "view_all_label", "label": "View all label", "default": "View all" },
+    {
+      "type": "collection_list",
+      "id": "collections",
+      "label": "Collections",
+      "default": ["featured-collection"]
+    }
+  ],
+  "presets": [{ "name": "Collection tiles" }]
+}
+{% endschema %}

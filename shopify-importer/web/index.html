@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shopify Importer</title>
+  <link rel="stylesheet" href="/app.css">
+</head>
+<body>
+  <div class="auth-wrap">
+    <div class="card" id="card">
+      <div class="brand">
+        <div class="brand-mark">S</div>
+        <div>
+          <div style="font-weight:650">Shopify Importer</div>
+          <div class="muted small">Supplier data to live products</div>
+        </div>
+      </div>
+
+      <div id="setupForm" class="hidden">
+        <h2>Create the first account</h2>
+        <p class="muted small mb0">This deployment has no users yet. The account you create here is an admin, and you can add teammates later.</p>
+        <div class="field mt">
+          <label for="suUser">Username</label>
+          <input id="suUser" autocomplete="username" spellcheck="false">
+        </div>
+        <div class="field">
+          <label for="suPass">Password</label>
+          <input id="suPass" type="password" autocomplete="new-password">
+          <div class="hint">At least 10 characters, with upper and lower case and a digit.</div>
+        </div>
+        <div class="field">
+          <label for="suPass2">Confirm password</label>
+          <input id="suPass2" type="password" autocomplete="new-password">
+        </div>
+        <button class="btn full" id="suBtn">Create account</button>
+        <div class="msg" id="suMsg"></div>
+      </div>
+
+      <div id="loginForm" class="hidden">
+        <h2>Sign in</h2>
+        <p class="muted small mb0">Enter your credentials for this importer.</p>
+        <div class="field mt">
+          <label for="lgUser">Username</label>
+          <input id="lgUser" autocomplete="username" spellcheck="false">
+        </div>
+        <div class="field">
+          <label for="lgPass">Password</label>
+          <input id="lgPass" type="password" autocomplete="current-password">
+        </div>
+        <button class="btn full" id="lgBtn">Sign in</button>
+        <div class="msg" id="lgMsg"></div>
+      </div>
+    </div>
+  </div>
+  <script src="/app.js"></script>
+  <script src="/auth.js"></script>
+</body>
+</html>

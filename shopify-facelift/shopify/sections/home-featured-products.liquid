@@ -1,0 +1,49 @@
+{%- comment -%} sections/home-featured-products.liquid — product grid using snippets/product-card.liquid. {%- endcomment -%}
+
+<section class="section">
+  <div class="container">
+    <div class="section__head">
+      <h2 class="section__title">{{ section.settings.title | default: 'Featured pieces' }}</h2>
+      {% if section.settings.collection != blank %}
+        <a class="section__link" href="{{ section.settings.collection.url }}">Shop all {{ section.settings.collection.products_count }} pieces</a>
+      {% endif %}
+    </div>
+
+    {% if section.settings.collection == blank or section.settings.collection.products_count == 0 %}
+      {% render 'product-card', card_product: product, section: section %}
+    {% else %}
+      <div class="product-grid">
+        {%- for product in section.settings.collection.products limit: section.settings.limit -%}
+          {% render 'product-card', card_product: product, section: section %}
+        {%- endfor -%}
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+<script src="{{ 'facelift.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "Featured products",
+  "class": "home-featured-products",
+  "settings": [
+    { "type": "text", "id": "title", "label": "Heading", "default": "Featured pieces" },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Collection"
+    },
+    {
+      "type": "range",
+      "id": "limit",
+      "label": "Products to show",
+      "min": 2,
+      "max": 12,
+      "step": 1,
+      "default": 4
+    }
+  ],
+  "presets": [{ "name": "Featured products" }]
+}
+{% endschema %}

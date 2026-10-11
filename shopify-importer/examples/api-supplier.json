@@ -1,0 +1,22 @@
+{
+  "baseUrl": "https://api.supplier.example.com",
+  "path": "/v2/products",
+  "method": "GET",
+  "headers": {
+    "Authorization": "Bearer ${SUPPLIER_API_KEY}"
+  },
+  "pageSize": 100,
+  "pageParam": "page",
+  "pageSizeParam": "limit",
+  "query": {
+    "status": "active",
+    "brand": "MyBrand"
+  },
+  "itemsPath": "$.data.products",
+  "hasMorePath": "$.data.hasMore",
+  "delayMs": 300,
+  "timeoutMs": 20000,
+  "attempts": 3,
+  "maxPages": 200,
+  "notes": "Copy the request the supplier gives you and fill in baseUrl, path, headers and itemsPath. ${SUPPLIER_API_KEY} is read from the environment; never commit a real key. For a POST-based endpoint set method to POST and put the body under \"body\". For cursor pagination set cursorParam and cursorStart instead of pageParam. For an array at the root, set itemsPath to \"$.\"."
+}

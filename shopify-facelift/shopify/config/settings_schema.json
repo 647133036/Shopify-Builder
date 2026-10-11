@@ -1,0 +1,18 @@
+[
+  {
+    "name": "Facelift · Neutral Minimal",
+    "settings": [
+      { "type": "header", "content": "Palette" },
+      { "type": "color", "id": "fl_bg", "label": "Background", "default": "#ffffff" },
+      { "type": "color", "id": "fl_bg_soft", "label": "Background soft", "default": "#fafaf8" },
+      { "type": "color", "id": "fl_surface", "label": "Surface", "default": "#f4f4f1" },
+      { "type": "color", "id": "fl_ink", "label": "Ink (text)", "default": "#131312" },
+      { "type": "color", "id": "fl_ink_2", "label": "Ink secondary", "default": "#4b4b47" },
+      { "type": "color", "id": "fl_ink_3", "label": "Ink tertiary", "default": "#8b8b85" },
+      { "type": "color", "id": "fl_line", "label": "Hairline", "default": "#e6e6e2" },
+      { "type": "color", "id": "fl_accent", "label": "Accent / CTA", "default": "#131312" },
+      { "type": "header", "content": "Copy" },
+      { "type": "text", "id": "fl_announce", "label": "Announcement bar text", "default": "Complimentary shipping over $75 · 30-day returns" }
+    ]
+  }
+]

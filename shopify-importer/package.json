@@ -1,0 +1,48 @@
+{
+  "name": "shopify-importer",
+  "version": "0.1.0",
+  "description": "Import supplier-provided product data into Shopify: CSV or API input, image processing, Shopify-native CSV export, and an idempotent Admin API upload. Ships as a CLI and as a multi-user web app.",
+  "keywords": [
+    "shopify",
+    "ecommerce",
+    "product-import",
+    "csv",
+    "image-processing",
+    "admin-api"
+  ],
+  "homepage": "https://github.com/647133036/Shopify-Builder#shopify-importer",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/647133036/Shopify-Builder.git",
+    "directory": "shopify-importer"
+  },
+  "bugs": {
+    "url": "https://github.com/647133036/Shopify-Builder/issues"
+  },
+  "license": "MIT",
+  "author": "647133036",
+  "main": "bin/import.js",
+  "bin": {
+    "shopify-importer": "bin/import.js",
+    "shopify-importer-serve": "bin/serve.js",
+    "shopify-importer-app": "bin/app.js"
+  },
+  "scripts": {
+    "test": "node tests/smoke.js",
+    "test:e2e": "BASE=http://127.0.0.1:8082 node tests/e2e.js",
+    "check": "node bin/import.js check",
+    "normalize": "node bin/import.js normalize",
+    "import": "node bin/import.js upload",
+    "serve": "node bin/serve.js",
+    "start": "node bin/app.js"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "dependencies": {
+    "sharp": "^0.33.0"
+  },
+  "devDependencies": {
+    "jsdom": "^24.0.0"
+  }
+}

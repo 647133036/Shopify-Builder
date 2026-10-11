@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shopify importer — preview &amp; normalise</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #171a21;
+    --panel-2: #1d212a;
+    --line: #2a2f3a;
+    --text: #e8eaed;
+    --muted: #9aa3b0;
+    --accent: #5b9dff;
+    --ok: #3fb950;
+    --warn: #d29922;
+    --err: #f85149;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  header {
+    padding: 22px 28px 18px;
+    border-bottom: 1px solid var(--line);
+    background: linear-gradient(180deg, #14171d 0%, var(--bg) 100%);
+  }
+  h1 { margin: 0 0 4px; font-size: 19px; letter-spacing: -0.2px; }
+  header p { margin: 0; color: var(--muted); font-size: 13px; max-width: 76ch; }
+  main { padding: 22px 28px 60px; max-width: 1240px; margin: 0 auto; }
+  section { margin-bottom: 26px; }
+  h2 {
+    font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--muted); margin: 0 0 10px; font-weight: 600;
+  }
+  .drop {
+    border: 1.5px dashed #39404e; border-radius: 10px; padding: 30px;
+    text-align: center; background: var(--panel); transition: border-color .15s, background .15s;
+    cursor: pointer;
+  }
+  .drop.over { border-color: var(--accent); background: #182031; }
+  .drop strong { display: block; font-size: 15px; margin-bottom: 4px; }
+  .drop span { color: var(--muted); font-size: 13px; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  button, .btn {
+    background: var(--accent); color: #08101f; border: 0; border-radius: 7px;
+    padding: 9px 14px; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-block;
+  }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  button.ghost, .btn.ghost { background: var(--panel-2); color: var(--text); border: 1px solid var(--line); }
+  input[type=file] { display: none; }
+  textarea {
+    width: 100%; min-height: 130px; resize: vertical;
+    background: var(--panel); color: var(--text); border: 1px solid var(--line);
+    border-radius: 8px; padding: 10px; font-family: var(--mono); font-size: 12px;
+  }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+  .stat {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 9px; padding: 12px 14px;
+  }
+  .stat b { display: block; font-size: 24px; font-variant-numeric: tabular-nums; }
+  .stat span { color: var(--muted); font-size: 12px; }
+  .stat.ok b { color: var(--ok); }
+  .stat.warn b { color: var(--warn); }
+  .stat.err b { color: var(--err); }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th, td { text-align: left; padding: 6px 9px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; position: sticky; top: 0; background: var(--panel); }
+  tbody tr:nth-child(even) td { background: #13161c; }
+  .mono { font-family: var(--mono); }
+  .muted { color: var(--muted); }
+  .tag {
+    display: inline-block; padding: 1px 7px; border-radius: 99px; font-size: 11px; font-weight: 600;
+  }
+  .tag.err { background: rgba(248,81,73,.14); color: var(--err); }
+  .tag.warn { background: rgba(210,153,34,.15); color: var(--warn); }
+  .tag.ok { background: rgba(63,185,80,.14); color: var(--ok); }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
+  .scroll { overflow: auto; max-height: 420px; }
+  .note {
+    background: #141924; border: 1px solid #232b3b; border-left: 3px solid var(--accent);
+    border-radius: 8px; padding: 11px 13px; font-size: 13px; color: #c3cad6;
+  }
+  .note code { font-family: var(--mono); font-size: 12px; color: #a8c7ff; }
+  #status { font-size: 13px; color: var(--muted); margin-top: 8px; min-height: 1.4em; }
+  #status.bad { color: var(--err); }
+  #hidden { display: none; }
+  footer { color: #6b7484; font-size: 12px; padding: 0 28px 40px; max-width: 1240px; margin: 0 auto; }
+  .arrow { color: var(--muted); padding: 0 6px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Shopify importer &mdash; preview &amp; normalise</h1>
+  <p>Drop a supplier CSV or JSON export. You get Shopify's native <span class="mono">products.csv</span> and <span class="mono">images.csv</span> shape, a field mapping to check, and every skipped row explained. Nothing is sent to your store from here.</p>
+</header>
+
+<main>
+  <section>
+    <h2>1. Input</h2>
+    <div class="drop" id="drop">
+      <strong>Drop a CSV or JSON file here</strong>
+      <span>or click to choose a file &mdash; one row per variant, or one row per product</span>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button id="pick">Choose file</button>
+      <button class="ghost" id="tryDemo">Use the bundled sample</button>
+      <span class="muted" id="picked" style="font-size:13px"></span>
+    </div>
+    <div style="margin-top:12px">
+      <textarea id="paste" placeholder="...or paste the CSV / JSON here. The file above is preferred, but pasting works too."></textarea>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button id="go">Normalise</button>
+      <span id="status"></span>
+    </div>
+  </section>
+
+  <section id="hidden">
+    <h2>2. What it becomes</h2>
+    <div class="grid" id="stats"></div>
+  </section>
+
+  <section id="hidden">
+    <h2>3. Field mapping</h2>
+    <div class="panel scroll">
+      <table id="mapping"></table>
+    </div>
+    <p class="muted" style="font-size:12.5px;margin-top:8px">Unrecognised source columns are ignored. Add them to <span class="mono">FIELD_ALIASES</span> in <span class="mono">lib/normalize.js</span> if your supplier uses different names.</p>
+  </section>
+
+  <section id="hidden">
+    <h2>4. Rows Shopify would create</h2>
+    <div class="panel scroll">
+      <table id="preview"></table>
+    </div>
+    <p class="muted" style="font-size:12.5px;margin-top:8px">One row per variant. <span class="mono">src</span> is the first image of the row; every distinct image of the product is listed in <span class="mono">images.csv</span>.</p>
+  </section>
+
+  <section id="hidden">
+    <h2>5. Skipped and suspicious rows</h2>
+    <div class="panel scroll">
+      <table id="errors"></table>
+    </div>
+  </section>
+
+  <section id="hidden">
+    <h2>6. Download</h2>
+    <div class="row">
+      <a class="btn" id="dlProducts" download>products.csv</a>
+      <a class="btn ghost" id="dlImages" download>images.csv</a>
+      <a class="btn ghost" id="dlResult" download>result.json</a>
+    </div>
+    <div class="note" style="margin-top:12px">
+      This preview only rewrites your data. Image processing and the actual upload are CLI jobs because they touch the network and your store:
+      <pre style="margin:9px 0 0;font-size:12px;color:#a8c7ff"><code>node bin/import.js normalize --input your-export.csv --out out --process-images
+node bin/import.js upload --input your-export.csv --shop store.myshopify.com --token TOKEN --dry-run</code></pre>
+    </div>
+  </section>
+</main>
+
+<footer>
+  Runs entirely on the local preview server. Your file is sent to the <span class="mono">/api/normalize</span> endpoint on this same origin and is not stored.
+</footer>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const status = (msg, bad) => {
+  $('status').textContent = msg || '';
+  $('status').className = bad ? 'bad' : '';
+};
+
+let fileData = null;
+
+const drop = $('drop');
+drop.addEventListener('click', () => $('pick').click());
+$('pick').addEventListener('click', () => {
+  const inp = document.createElement('input');
+  inp.type = 'file';
+  inp.accept = '.csv,.json,text/csv,application/json,text/plain';
+  inp.onchange = () => { if (inp.files[0]) readFile(inp.files[0]); };
+  inp.click();
+});
+
+['dragenter', 'dragover'].forEach((e) => drop.addEventListener(e, (ev) => { ev.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach((e) => drop.addEventListener(e, (ev) => { ev.preventDefault(); drop.classList.remove('over'); }));
+document.addEventListener('dragover', (e) => e.preventDefault());
+document.addEventListener('drop', (e) => {
+  e.preventDefault();
+  if (e.dataTransfer.files[0]) readFile(e.dataTransfer.files[0]);
+});
+
+function readFile(f) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    fileData = { name: f.name, text: String(reader.result) };
+    $('paste').value = '';
+    $('picked').textContent = f.name + ' (' + (f.size / 1024).toFixed(1) + ' KB)';
+    status('');
+  };
+  reader.readAsText(f);
+}
+
+$('go').addEventListener('click', async () => {
+  const text = fileData ? fileData.text : $('paste').value;
+  if (!text || !text.trim()) { status('Add a file or paste some CSV first.', true); return; }
+
+  status('Normalising...');
+  $('go').disabled = true;
+  try {
+    const body = fileData
+      ? JSON.stringify({ csv: fileData.text, filename: fileData.name })
+      : JSON.stringify({ csv: text, filename: 'pasted.csv' });
+    const res = await fetch('/api/normalize', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
+    render(data);
+    status('Done.');
+  } catch (err) {
+    status('Failed: ' + err.message, true);
+  } finally {
+    $('go').disabled = false;
+  }
+});
+
+$('tryDemo').addEventListener('click', async () => {
+  status('Loading the bundled sample...');
+  try {
+    const demo = await fetch('/api/demo');
+    if (!demo.ok) throw new Error('sample unavailable');
+    const data = await demo.json();
+    $('picked').textContent = 'examples/products.csv (bundled sample)';
+    $('paste').value = '';
+    render(data);
+    status('Done.');
+  } catch (err) {
+    status('Failed: ' + err.message, true);
+  }
+});
+
+const esc = (v) => String(v === null || v === undefined ? '' : v).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+function render(d) {
+  document.querySelectorAll('#hidden').forEach((el) => { el.hidden = false; });
+  const s = d.stats;
+
+  $('stats').innerHTML = [
+    ['rows in', s.inputRows, ''],
+    ['products', s.products, 'ok'],
+    ['variants', s.variants, 'ok'],
+    ['images', s.images, ''],
+    ['duplicates dropped', s.droppedDuplicates || 0, s.droppedDuplicates ? 'warn' : ''],
+    ['malformed dropped', s.droppedMalformed || 0, s.droppedMalformed ? 'err' : '']
+  ].map(([label, value, cls]) =>
+    `<div class="stat ${cls}"><b>${esc(value)}</b><span>${esc(label)}</span></div>`
+  ).join('');
+
+  const map = s.fieldMap || {};
+  const mappingRows = Object.keys(map)
+    .map((col) => `<tr><td class="mono">${esc(col)}</td><td class="arrow">&larr;</td><td class="mono">${esc(map[col])}</td></tr>`)
+    .join('');
+  $('mapping').innerHTML =
+    '<thead><tr><th>Shopify column</th><th></th><th>your source column</th></tr></thead>' +
+    '<tbody>' + (mappingRows || '<tr><td colspan="3" class="muted">No fields recognised. Check that a title column exists.</td></tr>') + '</tbody>';
+
+  const cols = ['handle', 'title', 'variant_sku', 'variant_price', 'variant_compare_at_price', 'option1_name', 'option1_value', 'option2_name', 'option2_value', 'variant_status', 'src'];
+  const body = d.products.slice(0, 300).map((r) =>
+    '<tr>' + cols.map((c) => `<td class="mono">${esc(r[c])}</td>`).join('') + '</tr>'
+  ).join('');
+  $('preview').innerHTML =
+    '<thead><tr>' + cols.map((c) => `<th>${esc(c)}</th>`).join('') + '</tr></thead><tbody>' +
+    body +
+    (d.products.length > 300 ? `<tr><td colspan="${cols.length}" class="muted">showing 300 of ${d.products.length} rows</td></tr>` : '') +
+    '</tbody>';
+
+  const errRows = (d.errors || []).map((e) => {
+    const kind = String(e.code || '').startsWith('E_') ? 'err' : 'warn';
+    return `<tr><td><span class="tag ${kind}">${esc(e.code || '')}</span></td><td class="mono">line ${esc(e.line)}</td><td>${esc(e.message || '')}</td></tr>`;
+  }).join('');
+  $('errors').innerHTML =
+    '<thead><tr><th>code</th><th>line</th><th>detail</th></tr></thead><tbody>' +
+    (errRows || '<tr><td colspan="3" class="muted">Nothing skipped. Every row became a variant.</td></tr>') + '</tbody>';
+
+  const dl = (text, name) => URL.createObjectURL(new Blob([text], { type: 'text/csv;charset=utf-8' }));
+  $('dlProducts').href = dl(d.productsCsv || '', 'products.csv');
+  $('dlProducts').download = 'products.csv';
+  $('dlImages').href = dl(d.imagesCsv || '', 'images.csv');
+  $('dlImages').download = 'images.csv';
+  $('dlResult').href = URL.createObjectURL(new Blob([JSON.stringify(d, null, 2)], { type: 'application/json' }));
+  $('dlResult').download = 'result.json';
+}
+</script>
+</body>
+</html>

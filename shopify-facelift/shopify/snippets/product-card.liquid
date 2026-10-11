@@ -1,0 +1,63 @@
+{%- comment -%} snippets/product-card.liquid — expects `card_product`; single variant quick-adds, multi-variant deep-links. {%- endcomment -%}
+
+<article class="product-card" data-name="{{ card_product.title | escape }}" data-price="{{ card_product.price | divided_by: 100 }}">
+
+  <div class="card-media">
+    {% if card_product.featured_image %}
+      <a class="card-media__link" href="{{ card_product.url }}" aria-label="{{ card_product.title | escape }}">
+        {{ card_product.featured_image | image_url: width: 800 | image_tag:
+            loading: 'lazy',
+            widths: '400, 600, 800',
+            sizes: '(min-width: 990px) 25vw, (min-width: 640px) 33vw, 50vw',
+            alt: card_product.featured_image.alt | escape }}
+      </a>
+    {% else %}
+      <a class="card-media__link" href="{{ card_product.url }}" aria-label="{{ card_product.title | escape }}"></a>
+    {% endif %}
+
+    {% if card_product.tags contains 'new' or card_product.tags contains 'new-in' %}
+      <span class="card-tag">New in</span>
+    {% elsif card_product.compare_at_price_max > card_product.price_max %}
+      <span class="card-tag card-tag--sale">Save {{ card_product.compare_at_price_max | minus: card_product.price_min | money }}</span>
+    {% endif %}
+
+    {% if card_product.variants.size == 1 %}
+      <form method="post" action="/cart/add" data-section="{{ section.id }}">
+        <input type="hidden" name="id" value="{{ card_product.selected_or_first_available_variant.id }}">
+        <button type="submit" name="add" class="quick-add"
+                data-name="{{ card_product.title | escape }}"
+                data-price="{{ card_product.price | divided_by: 100 }}"
+                data-variant="{{ card_product.selected_or_first_available_variant.title | escape }}"
+                {% unless card_product.available %} disabled{% endunless %}>
+          {% if card_product.available %}Quick add{% else %}Sold out{% endif %}
+        </button>
+      </form>
+    {% else %}
+      <a class="quick-add" href="{{ card_product.url }}">Select options</a>
+    {% endif %}
+  </div>
+
+  <div class="card-info">
+    <a class="card-title" href="{{ card_product.url }}">{{ card_product.title | escape }}</a>
+    {% if card_product.description != blank %}
+      <p class="card-meta">{{ card_product.description | strip_html | truncatewords: 5 }}</p>
+    {% endif %}
+    <p class="card-price">
+      <span>{% if card_product.compare_at_price_max > card_product.price_max %}{{ card_product.price_min | money }}{% else %}{{ card_product.price_min | money }}{% endif %}</span>
+      {% if card_product.compare_at_price_max > card_product.price_max %}
+        <s>{{ card_product.compare_at_price_max | money }}</s>
+      {% endif %}
+    </p>
+    {% if card_product.variants.first.available == false %}
+      <p class="card-meta">Sold out</p>
+    {% endif %}
+  </div>
+
+</article>
+
+{% schema %}
+{
+  "name": "Product card",
+  "settings": []
+}
+{% endschema %}

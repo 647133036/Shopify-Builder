@@ -1,0 +1,30 @@
+# Secrets and local state
+# Never commit these: they hold every connected store's Shopify token and the
+# server's session-signing key.
+data/
+*.db
+*.db-shm
+*.db-wal
+*.key
+.env
+.env.*
+
+# Dependencies
+node_modules/
+
+# Generated output
+shopify-importer/out/
+shopify-importer/assets/
+
+# Agent and editor metadata
+.monkeycode/
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/
+
+# Logs
+*.log
+npm-debug.log*

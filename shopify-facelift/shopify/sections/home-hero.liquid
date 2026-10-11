@@ -1,0 +1,59 @@
+{%- comment -%} sections/home-hero.liquid — split hero with editorial serif headline. {%- endcomment -%}
+
+<section class="section {% if section.settings.full_bleed %}hero--full{% endif %}">
+  <div class="container">
+    <div class="hero">
+      <div class="hero__copy">
+        {% if section.settings.eyebrow != blank %}
+          <p class="eyebrow hero__eyebrow">{{ section.settings.eyebrow | escape }}</p>
+        {% endif %}
+        <h1 class="hero__title balance">{{ section.settings.title }}</h1>
+        {% if section.settings.subtitle != blank %}
+          <p class="hero__lede measure">{{ section.settings.subtitle }}</p>
+        {% endif %}
+        <div class="hero__cta">
+          {% if section.settings.primary_link.url != blank %}
+            <a class="btn btn--primary" href="{{ section.settings.primary_link.url }}">{{ section.settings.primary_label | default: 'Shop the collection' }}</a>
+          {% endif %}
+          {% if section.settings.secondary_link.url != blank %}
+            <a class="btn btn--ghost" href="{{ section.settings.secondary_link.url }}">{{ section.settings.secondary_label | default: 'Explore' }}</a>
+          {% endif %}
+        </div>
+      </div>
+
+      {% if section.settings.image %}
+        <div class="hero__media">
+          {{ section.settings.image | image_url: width: 1400 | image_tag:
+              loading: 'eager',
+              fetchpriority: 'high',
+              widths: '533, 768, 1024, 1400',
+              sizes: '(min-width: 861px) 48vw, 100vw',
+              alt: section.settings.image.alt | default: section.settings.title | escape }}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Hero",
+  "class": "home-hero",
+  "settings": [
+    { "type": "header", "content": "Copy" },
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "The Autumn Edit" },
+    { "type": "textarea", "id": "title", "label": "Headline", "default": "Objects that sit quietly in a room." },
+    { "type": "textarea", "id": "subtitle", "label": "Subheadline" },
+    { "type": "header", "content": "Primary action" },
+    { "type": "text", "id": "primary_label", "label": "Label", "default": "Shop the collection" },
+    { "type": "link", "id": "primary_link", "label": "Link" },
+    { "type": "header", "content": "Secondary action" },
+    { "type": "text", "id": "secondary_label", "label": "Label", "default": "Explore ceramics" },
+    { "type": "link", "id": "secondary_link", "label": "Link" },
+    { "type": "header", "content": "Image" },
+    { "type": "image_picker", "id": "image", "label": "Image", "info": "4:5 portrait for the split layout, 16:9 for full bleed." },
+    { "type": "checkbox", "id": "full_bleed", "label": "Full bleed layout", "default": false }
+  ],
+  "presets": [{ "name": "Hero" }]
+}
+{% endschema %}

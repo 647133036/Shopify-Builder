@@ -1,0 +1,139 @@
+{%- comment -%} sections/product-info.liquid — title, price, variants, buy box, trust row, accordions. Pairs with sections/product-media.liquid. {%- endcomment -%}
+
+<form class="pdp__body product-form"
+      method="post"
+      action="/cart/add"
+      data-product-form
+      data-section="{{ section.id }}">
+
+  {% if product.options.size > 0 %}
+    {% render 'variant-selector', product: product, section: section %}
+  {% endif %}
+
+  <div class="product-eyebrow">
+    {% assign vendor_category = section.settings.eyebrow | default: product.vendor %}
+    {% if vendor_category != blank %}
+      <p class="eyebrow">{{ vendor_category | escape }}</p>
+      <span class="dot"></span>
+    {% endif %}
+    <p class="eyebrow">SKU {{ product.selected_or_first_available_variant.sku | default: product.id | escape }}</p>
+  </div>
+
+  <h1 class="product-title">{{ product.title | escape }}</h1>
+
+  <div class="product-price-row" id="ProductPrice-{{ section.id }}" data-product-price>
+    <span class="price" data-price-current>
+      {% if product.price_varies and product.options.size > 0 %}
+        From {{ product.price_min | money }}
+      {% else %}
+        {{ product.selected_or_first_available_variant.price | money }}
+      {% endif %}
+    </span>
+    {% if product.compare_at_price_max > product.price_max %}
+      {% assign variant_price = product.selected_or_first_available_variant.price %}
+      {% assign variant_compare = product.selected_or_first_available_variant.compare_at_price %}
+      {% if variant_compare > variant_price %}
+        <s class="price--compare" data-price-compare>{{ variant_compare | money }}</s>
+      {% endif %}
+      {% assign saved = product.compare_at_price_max | minus: product.price_min %}
+      {% if saved > 0 %}
+        <span class="price--note" data-price-note>Save {{ saved | times: 100 | divided_by: product.compare_at_price_max }}%</span>
+      {% endif %}
+    {% endif %}
+  </div>
+
+  {% if product.description != blank %}
+    <p class="product-desc">{{ product.description | strip_html | truncatewords: 42 }}</p>
+  {% endif %}
+
+  <div class="buy-row">
+    <input type="hidden" name="quantity" value="1" id="Quantity-{{ section.id }}" data-quantity-input>
+
+    <div class="buy-row__line">
+      <button type="submit"
+              name="add"
+              id="AddToCart-{{ section.id }}"
+              class="btn btn--primary btn--lg btn--block js-add"
+              data-add-button
+              {% unless product.selected_or_first_available_variant.available %}disabled{% endunless %}>
+        <span data-add-label>
+          {% if product.selected_or_first_available_variant.available %}
+            Add to bag — {{ product.selected_or_first_available_variant.price | money }}
+          {% else %}Sold out{% endif %}
+        </span>
+      </button>
+
+      <div class="qty" data-qty-wrap>
+        <button type="button" class="qty__btn" data-step="-1" aria-label="Decrease quantity">
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M2.5 7h9"/></svg>
+        </button>
+        <span class="qty__val" data-qty-val>1</span>
+        <button type="button" class="qty__btn" data-step="1" aria-label="Increase quantity">
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M7 2.5v9M2.5 7h9"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <button type="submit" name="checkout" class="btn btn--ghost btn--block js-add" data-buy-now-button>Buy it now</button>
+
+    {% if section.settings.show_shipping_note %}
+      <p class="ship-note">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M2 7h11v9H2zM13 10h4.5L20 13v3h-7"/><circle cx="6" cy="18" r="1.8"/><circle cx="17" cy="18" r="1.8"/></svg>
+        {{ section.settings.shipping_note | default: 'Shipped within 2 business days · Free over $75' }}
+      </p>
+    {% endif %}
+
+    <div class="payment-row">
+      <span>Secure checkout</span>
+      <span class="pills">
+        <span class="pill">VISA</span><span class="pill">MC</span><span class="pill">AMEX</span><span class="pill">APPLE</span>
+      </span>
+    </div>
+  </div>
+
+  {% if section.settings.show_trust_row %}
+    {% render 'trust-badges', section: section %}
+  {% endif %}
+
+  {% if section.settings.show_accordions %}
+    <div class="accordion">
+
+      <div class="accordion__item" data-open="true">
+        <button type="button" class="accordion__trigger">Description<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg></button>
+        <div class="accordion__panel"><div class="accordion__panel-inner">{{ product.description }}</div></div>
+      </div>
+
+      {% if product.metafields.products.materials.value != blank %}
+        <div class="accordion__item">
+          <button type="button" class="accordion__trigger">Materials &amp; care<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg></button>
+          <div class="accordion__panel"><div class="accordion__panel-inner">{{ product.metafields.products.materials.value }}</div></div>
+        </div>
+      {% endif %}
+
+      {% if section.settings.shipping_policy != blank %}
+        <div class="accordion__item">
+          <button type="button" class="accordion__trigger">Shipping &amp; returns<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg></button>
+          <div class="accordion__panel"><div class="accordion__panel-inner">{{ section.settings.shipping_policy }}</div></div>
+        </div>
+      {% endif %}
+    </div>
+  {% endif %}
+
+</form>
+
+{% schema %}
+{
+  "name": "Product info",
+  "class": "product-info",
+  "tags": ["product"],
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow label", "info": "Leave blank to use the vendor." },
+    { "type": "checkbox", "id": "show_shipping_note", "label": "Show shipping note", "default": true },
+    { "type": "text", "id": "shipping_note", "label": "Shipping note", "default": "Shipped within 2 business days · Free over $75" },
+    { "type": "checkbox", "id": "show_trust_row", "label": "Show trust badges", "default": true },
+    { "type": "checkbox", "id": "show_accordions", "label": "Show accordions", "default": true },
+    { "type": "richtext", "id": "shipping_policy", "label": "Shipping and returns copy" }
+  ],
+  "presets": [{ "name": "Product info" }]
+}
+{% endschema %}

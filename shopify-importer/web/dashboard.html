@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shopify Importer</title>
+  <link rel="stylesheet" href="/app.css">
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">S</div>
+      <div style="font-weight:650">Shopify Importer</div>
+    </div>
+    <span class="badge" id="connBadge">no connection</span>
+    <div class="spacer"></div>
+    <span class="who"><b id="whoName">…</b> · <span id="whoRole">…</span></span>
+    <button class="btn ghost" id="logoutBtn">Sign out</button>
+  </div>
+
+  <div class="wrap">
+
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <h2 class="mb0">Shopify connection</h2>
+          <div class="muted small">Your store and token are stored on this server, only for your account.</div>
+        </div>
+        <div class="spacer"></div>
+      </div>
+      <div class="grid cols-2">
+        <div class="field mb0">
+          <label for="shopInput">Store</label>
+          <input id="shopInput" spellcheck="false" placeholder="your-store.myshopify.com">
+        </div>
+        <div class="field mb0">
+          <label for="tokenInput">Admin token</label>
+          <input id="tokenInput" spellcheck="false" placeholder="shpat_…" autocomplete="off">
+          <div class="hint">Create it in Shopify: Settings → Apps and sales channels → Manage private app access. Needs <code>write_products</code>, plus <code>write_themes</code> if you stage images.</div>
+        </div>
+      </div>
+      <div class="row mt">
+        <button class="btn secondary sm" id="testBtn">Test connection</button>
+        <button class="btn sm" id="saveConnBtn">Save connection</button>
+        <span class="muted small" id="connInfo"></span>
+      </div>
+      <div class="msg" id="connMsg"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <h2 class="mb0">Import</h2>
+          <div class="muted small">Upload a supplier CSV or JSON. Review the mapping, then run a dry run or write to the store.</div>
+        </div>
+      </div>
+
+      <div class="drop" id="drop">
+        <div class="drop-title">Drop a file here, or click to browse</div>
+        <div class="drop-sub">.csv and .json, up to 40 MB. Images stay in your store once staged.</div>
+        <input type="file" id="fileInput" accept=".csv,.json,text/csv,application/json" class="hidden">
+      </div>
+      <div class="msg" id="dropMsg"></div>
+
+      <div id="preview" class="hidden">
+        <div class="row" style="justify-content:space-between; margin-bottom:10px">
+          <div class="row tight">
+            <span class="tag" id="previewName">file.csv</span>
+            <span class="muted small" id="previewRows"></span>
+          </div>
+          <div class="row tight">
+            <button class="btn ghost sm" id="dlProductsBtn">Download products.csv</button>
+            <button class="btn ghost sm" id="clearPreviewBtn">Clear</button>
+          </div>
+        </div>
+        <div class="stats" id="statGrid"></div>
+
+        <h3>Field mapping</h3>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Shopify field</th><th>Source column</th></tr></thead>
+            <tbody id="mapBody"></tbody>
+          </table>
+        </div>
+
+        <h3>Warnings and errors</h3>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Line</th><th>Code</th><th>Message</th></tr></thead>
+            <tbody id="warnBody"></tbody>
+          </table>
+        </div>
+
+        <h3>Sample variants</h3>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Handle</th><th>Title</th><th>SKU</th><th>Price</th><th>Size</th><th>Colour</th><th>Fit</th><th>Weight</th></tr></thead>
+            <tbody id="sampleBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <h3>Run</h3>
+      <div class="checks">
+        <label class="check">
+          <input type="checkbox" id="optProcessImages">
+          <div>
+            <div>Process and stage images</div>
+            <div class="desc">Downloads each image, downscales to a long edge of 2048 px and compresses it under 680 KB, then uploads it to your store's own /cdn/shop/t/ CDN. Needs the write_themes scope.</div>
+          </div>
+        </label>
+        <label class="check">
+          <input type="checkbox" id="optSkipDuplicates">
+          <div>
+            <div>Skip products that already exist</div>
+            <div class="desc">If a handle is already in the store, leave it untouched instead of updating it.</div>
+          </div>
+        </label>
+      </div>
+
+      <div class="row">
+        <button class="btn" id="dryRunBtn">Run dry run</button>
+        <button class="btn secondary" id="liveBtn">Write to Shopify</button>
+        <span class="muted small" id="runHint">A dry run builds every payload and reports what it would do, without sending anything.</span>
+      </div>
+
+      <div id="runBox" class="hidden mt">
+        <div class="row" style="justify-content:space-between">
+          <div class="muted small" id="runStage">Queued</div>
+          <span class="tag" id="runPct">0%</span>
+        </div>
+        <div class="progress mt"><i id="runBar"></i></div>
+      </div>
+      <div class="msg" id="runMsg"></div>
+
+      <div id="outcome" class="hidden">
+        <h3 class="mt">Result</h3>
+        <div class="stats" id="outcomeStats"></div>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Handle</th><th>Variant</th><th>Action</th><th>Product ID</th><th>Images</th><th>Error</th></tr></thead>
+            <tbody id="outcomeBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <h2 class="mb0">History</h2>
+          <div class="muted small">Everything your account has run, newest first.</div>
+        </div>
+        <div class="spacer"></div>
+        <button class="btn ghost sm" id="refreshHistoryBtn">Refresh</button>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Started</th><th>File</th><th>Mode</th><th>Status</th><th>Products</th><th>Variants</th><th>Duration</th></tr></thead>
+          <tbody id="historyBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel hidden" id="usersPanel">
+      <div class="panel-head">
+        <div>
+          <h2 class="mb0">Users</h2>
+          <div class="muted small">Admins can add accounts and manage roles.</div>
+        </div>
+        <div class="spacer"></div>
+        <button class="btn ghost sm" id="refreshUsersBtn">Refresh</button>
+      </div>
+      <div class="grid cols-2">
+        <div>
+          <h3 class="mt0">Add user</h3>
+          <div class="field">
+            <label for="nuUser">Username</label>
+            <input id="nuUser" spellcheck="false">
+          </div>
+          <div class="field">
+            <label for="nuPass">Initial password</label>
+            <input id="nuPass" type="password" autocomplete="new-password">
+          </div>
+          <div class="field">
+            <label for="nuRole">Role</label>
+            <select id="nuRole">
+              <option value="operator">Operator</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <div class="row">
+            <button class="btn sm" id="addUserBtn">Add user</button>
+            <button class="btn ghost sm" id="genPassBtn">Suggest password</button>
+          </div>
+          <div class="msg" id="userMsg"></div>
+        </div>
+        <div>
+          <h3 class="mt0">Existing</h3>
+          <div class="table-scroll">
+            <table>
+              <thead><tr><th>User</th><th>Role</th><th>Status</th><th></th></tr></thead>
+              <tbody id="usersBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-note">
+      Files are processed on this server and deleted when the job finishes. Nothing leaves it except calls to your own Shopify store.
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+  <script src="/dashboard.js"></script>
+</body>
+</html>

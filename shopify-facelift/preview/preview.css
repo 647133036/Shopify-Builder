@@ -1,0 +1,61 @@
+/* Preview-only: webfonts + SVG placeholder art classes.
+   Neither file is needed in Shopify — brand.css is the shipped sheet. */
+
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400&family=Inter:wght@400;500;600&display=swap");
+
+.ph-art .a-wall {
+  fill: #f3f1ec;
+}
+.ph-art .a-wall-2 {
+  fill: #efece6;
+}
+.ph-art .a-floor {
+  fill: #e7e4de;
+}
+.ph-art .a-light {
+  fill: #ffffff;
+  fill-opacity: 0.34;
+}
+.ph-art .a-obj {
+  fill: #cfccc5;
+}
+.ph-art .a-obj-2 {
+  fill: #c1bdb5;
+}
+.ph-art .a-obj-3 {
+  fill: #dedad3;
+}
+.ph-art .a-obj-4 {
+  fill: #eae7e1;
+}
+.ph-art .a-obj-dark {
+  fill: #2d2d2b;
+}
+.ph-art .a-sh {
+  fill: #131312;
+}
+.ph-art .a-sh-soft {
+  fill: #131312;
+}
+.ph-art .a-line {
+  stroke: #b8b4ab;
+  stroke-width: 2;
+  fill: none;
+  opacity: 0.55;
+}
+.ph-art .a-line-dark {
+  stroke: #1c1c1b;
+  stroke-width: 3;
+  fill: none;
+  opacity: 0.6;
+}
+.ph-art .a-branch {
+  stroke: #a8a49b;
+  stroke-width: 4;
+  fill: none;
+  stroke-linecap: round;
+}
+.ph-art .a-hi {
+  fill: #ffffff;
+  fill-opacity: 0.3;
+}

@@ -1,0 +1,141 @@
+{%- comment -%}
+  snippets/variant-selector.liquid
+  Expects: product, section
+  Renders the variant radios plus chip, list or swatch controls.
+
+  Shopify Liquid's `find` filter takes exactly two arguments, so option-value
+  availability is resolved with explicit loops instead. `variant.options[i]`
+  is indexed with the 0-based option index to stay in step with
+  product.options_with_values.
+  `-` delimiters keep the inner control flow from emitting whitespace.
+{%- endcomment -%}
+
+<div class="variant-selector" data-variant-selector>
+
+  {%- for variant in product.variants -%}
+    <input type="radio"
+           name="id"
+           id="Variant-{{ section.id }}-{{ variant.id }}"
+           value="{{ variant.id }}"
+           data-options='[{% for opt in variant.options %}"{{ opt | escape }}"{% unless forloop.last %},{% endunless %}{% endfor %}]'
+           data-price="{{ variant.current_price }}"
+           data-compare-at="{{ variant.compare_at_price }}"
+           data-soldout="{{ variant.available == false }}"
+           {% unless variant.available %} disabled{% endunless %}
+           {% if variant.id == product.selected_or_first_available_variant.id %} checked{% endif %}>
+  {%- endfor -%}
+
+  {%- for option in product.options_with_values -%}
+    {%- assign opt_index = forloop.index0 -%}
+    {%- assign opt_num = opt_index | plus: 1 -%}
+
+    <div class="variant-group" data-option="{{ opt_num }}" data-name="{{ option.name }}">
+
+      <div class="variant-group__head">
+        <span class="variant-group__label">{{ option.name }}</span>
+        <span class="variant-group__value">
+          Selected: <strong data-selected>{{ product.selected_or_first_available_variant.options[opt_index] }}</strong>
+        </span>
+      </div>
+
+      {%- case section.settings.option_style -%}
+
+        {%- when 'swatches' -%}
+          <div class="swatch-row">
+            {%- for value in option.values -%}
+              {%- assign has_available = false -%}
+              {%- assign has_swatch = false -%}
+              {%- assign swatch_color = blank -%}
+              {%- for v in product.variants -%}
+                {%- if v.options[opt_index] == value and v.available -%}
+                  {%- assign has_available = true -%}
+                  {%- if has_swatch == false -%}
+                    {%- assign swatch_color = v.metafields.swatch_variant.metafields.swatch.color.value -%}
+                    {%- if swatch_color != blank -%}
+                      {%- assign has_swatch = true -%}
+                    {%- endif -%}
+                  {%- endif -%}
+                {%- endif -%}
+              {%- endfor -%}
+              <button type="button"
+                      class="swatch"
+                      style="{% if swatch_color != blank %}--sw: {{ swatch_color }}{% endif %}"
+                      data-variant-options='{ "option{{ opt_num }}": "{{ value | escape }}" }'
+                      data-label="{{ option.name }}"
+                      data-value="{{ value | escape }}"
+                      {% unless has_available %}aria-disabled="true"{% endunless %}
+                      aria-label="{{ option.name }}: {{ value }}">{% if swatch_color != blank %}<i></i>{% endif %}</button>
+            {%- endfor -%}
+          </div>
+
+        {%- when 'list' -%}
+          <div class="opt-list">
+            {%- for value in option.values -%}
+              {%- assign has_available = false -%}
+              {%- assign opt_price = 0 -%}
+              {%- for v in product.variants -%}
+                {%- if v.options[opt_index] == value and v.available -%}
+                  {%- assign has_available = true -%}
+                  {%- if opt_price == 0 or v.price < opt_price -%}
+                    {%- assign opt_price = v.price -%}
+                  {%- endif -%}
+                {%- endif -%}
+              {%- endfor -%}
+              <button type="button"
+                      class="opt"
+                      data-variant-options='{ "option{{ opt_num }}": "{{ value | escape }}" }'
+                      data-label="{{ option.name }}"
+                      data-value="{{ value | escape }}"
+                      {% unless has_available %}aria-disabled="true"{% endunless %}>
+                <span class="opt__bullet"></span>
+                <span>{{ value }}</span>
+                {%- if has_available and opt_price > product.price_min -%}
+                  <span class="opt__price">+{{ opt_price | money_without_currency }}</span>
+                {%- endif -%}
+              </button>
+            {%- endfor -%}
+          </div>
+
+        {%- else -%}
+          <div class="chip-row">
+            {%- for value in option.values -%}
+              {%- assign has_available = false -%}
+              {%- for v in product.variants -%}
+                {%- if v.options[opt_index] == value and v.available -%}
+                  {%- assign has_available = true -%}
+                {%- endif -%}
+              {%- endfor -%}
+              <button type="button"
+                      class="chip"
+                      data-variant-options='{ "option{{ opt_num }}": "{{ value | escape }}" }'
+                      data-label="{{ option.name }}"
+                      data-value="{{ value | escape }}"
+                      {% unless has_available %}aria-disabled="true"{% endunless %}>{{ value }}</button>
+            {%- endfor -%}
+          </div>
+        {%- endcase -%}
+
+    </div>
+  {%- endfor -%}
+
+</div>
+
+{% schema %}
+{
+  "name": "Variant selector",
+  "settings": [
+    {
+      "type": "select",
+      "id": "option_style",
+      "label": "Option style",
+      "options": [
+        { "value": "chips", "label": "Chips" },
+        { "value": "swatches", "label": "Colour swatches" },
+        { "value": "list", "label": "List rows" }
+      ],
+      "default": "chips",
+      "info": "Swatches need the Dawn swatch_variant metafield on each colour variant."
+    }
+  ]
+}
+{% endschema %}

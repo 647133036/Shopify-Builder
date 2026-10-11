@@ -1,0 +1,38 @@
+{%- comment -%} snippets/trust-badges.liquid — three-up reassurance row under the buy box. {%- endcomment -%}
+
+<div class="trust-row">
+  <div class="trust-badge">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M2 7h11v9H2zM13 10h4.5L20 13v3h-7"/><circle cx="6" cy="18" r="1.8"/><circle cx="17" cy="18" r="1.8"/></svg>
+    <b>{{ section.settings.shipping_title | default: 'Free shipping over $75' }}</b>
+    <span>{{ section.settings.shipping_text | default: 'Tracked delivery in 3–5 business days, worldwide.' }}</span>
+  </div>
+  <div class="trust-badge">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.5-5.8"/><path d="M4 3v4h4"/></svg>
+    <b>{{ section.settings.returns_title | default: '30-day returns' }}</b>
+    <span>{{ section.settings.returns_text | default: 'Changed your mind? Send it back within 30 days.' }}</span>
+  </div>
+  <div class="trust-badge">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 3 5 6v6c0 4.2 2.9 7.5 7 9 4.1-1.5 7-4.8 7-9V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></svg>
+    <b>{{ section.settings.security_title | default: 'Secure checkout' }}</b>
+    <span>{{ section.settings.security_text | default: '256-bit encrypted. We never store your card details.' }}</span>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Trust badges",
+  "class": "trust-badges",
+  "settings": [
+    { "type": "header", "content": "Shipping" },
+    { "type": "text", "id": "shipping_title", "label": "Title", "default": "Free shipping over $75" },
+    { "type": "text", "id": "shipping_text", "label": "Description" },
+    { "type": "header", "content": "Returns" },
+    { "type": "text", "id": "returns_title", "label": "Title", "default": "30-day returns" },
+    { "type": "text", "id": "returns_text", "label": "Description" },
+    { "type": "header", "content": "Security" },
+    { "type": "text", "id": "security_title", "label": "Title", "default": "Secure checkout" },
+    { "type": "text", "id": "security_text", "label": "Description" }
+  ],
+  "presets": [{ "name": "Trust badges" }]
+}
+{% endschema %}
